@@ -1,0 +1,19 @@
+@ECHO OFF
+REM 删除之前构建的文件
+DEL *.EXE
+DEL *.LOG
+
+REM 编译所有源文件
+MASM MAIN.ASM; >> A.LOG
+MASM MENU.ASM; >> A.LOG
+MASM UTILS.ASM; >> A.LOG
+MASM MUSIC.ASM; >> A.LOG
+
+REM 链接目标文件
+LINK MAIN.OBJ MENU.OBJ UTILS.OBJ MUSIC.OBJ; >> A.LOG
+
+REM 删除中间文件
+DEL *.OBJ
+
+ECHO Compile Finished,Please check log file
+pause
