@@ -9,6 +9,9 @@
 ## MUSIC
 蜂鸣器播放nyan cat
 
+## ANIMATION
+播放动图
+
 ## REST
 重启
 
