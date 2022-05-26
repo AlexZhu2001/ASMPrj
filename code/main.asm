@@ -34,10 +34,11 @@ DATA SEGMENT
         MENU_TITLE  DB  "MENU",00H
         MENU_INFO   DB  ">CLOCK",00H
                     DB  ">MUSIC",00H
+                    DB  ">ANIMATION",00H
                     DB  ">REBOOT",00H
                     DB  ">EXIT",00H
         ;菜单数量
-        MENU_COUNT  DB  4
+        MENU_COUNT  DB  5
         ;退出标志
         EXIT_FLAG   DB  0
 DATA ENDS
