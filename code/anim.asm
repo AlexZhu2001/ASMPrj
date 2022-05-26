@@ -906,7 +906,7 @@ SLEEP MACRO P1,P2
     PUSH CX
     PUSH DX
     ;调用0x15的0x86号功能进行延时
-    ;CX:DX 为延时时间 单位ms
+    ;CX:DX 为延时时间 单位us
     ;若设置CF 则出错
     MOV AH,86H
     MOV CX,P1
@@ -970,7 +970,7 @@ WRITE_IMG:
 
 NEXTF:
     ;帧间延时
-    SLEEP 1,6000H
+    SLEEP 1,86A0H
     ;回到显存开头
     MOV DI,0
     ;计算下一帧地址 每帧大小为 50*28=2000 个Byte
