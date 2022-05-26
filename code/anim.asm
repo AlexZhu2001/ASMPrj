@@ -1,3 +1,20 @@
+; Copyright 2022 AlexZhu2001@stu.xupt.edu.cn
+; Permission is hereby granted, free of charge, to any person obtaining a copy 
+; of this software and associated documentation files (the "Software"), to deal 
+; in the Software without restriction, including without limitation the rights to 
+; use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+; of the Software, and to permit persons to whom the Software is furnished to do 
+; so, subject to the following conditions:
+; The above copyright notice and this permission notice shall be included in 
+; all copies or substantial portions of the Software.
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+; SOFTWARE.
+
 DATA_ANIMATION SEGMENT
 SRC     DB	0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH,0FFH
         DB	0FFH,0FFH,0F7H,0F7H,0F7H,0F7H,0F7H,0F7H,0F7H,0F7H,0F7H,0FEH,0FEH,0F7H,0F7H,0F7H,0F7H,0F7H,0F7H,0FEH,0FEH,0FEH,0FEH,0F7H,0F7H
@@ -884,13 +901,18 @@ SRC_END DB 0
 DATA_ANIMATION ENDS
 
 SLEEP MACRO P1,P2
+    ;保护寄存器
     PUSH AX
     PUSH CX
     PUSH DX
+    ;调用0x15的0x86号功能进行延时
+    ;CX:DX 为延时时间 单位ms
+    ;若设置CF 则出错
     MOV AH,86H
     MOV CX,P1
     MOV DX,P2
     INT 15H
+    ;恢复寄存器
     POP DX
     POP CX
     POP AX
@@ -900,6 +922,7 @@ CODE_ANIMATION SEGMENT PARA PUBLIC 'code'
     ASSUME CS:CODE_ANIMATION,DS:DATA_ANIMATION
     PUBLIC ANIMATION
 ANIMATION PROC FAR
+    ;保护寄存器
     PUSH AX
     PUSH BX
     PUSH CX
@@ -908,60 +931,68 @@ ANIMATION PROC FAR
     PUSH ES
     PUSH SI
     PUSH DI
-
+    ;设置显示模式为 80*25 16色
     MOV AX,0003H
     INT 10H
-    
+    ;关闭闪烁功能
     MOV AX,1003H
 	MOV BL,0
 	INT 10H
-
+    ;设置图片的起始偏移地址
     MOV SI,OFFSET SRC
     MOV DI,0
-
+    ;设置图片的段地址
     MOV AX,DATA_ANIMATION
     MOV DS,AX
-
+    ;设置显存地址
     MOV AX,0B800H
     MOV ES,AX
 
 WRITE_IMG:
+    ;写入拓展ASCII字符 220 上半背景色 下半为前景色
     MOV AL,220
     STOSB
-
+    ;读取一个像素位的像素
     LODSB
     STOSB
-
+    ;判断有无按键按下
     MOV AH,11H
     INT 16H
     JNZ QUIT
-
+    ;到达动画最后一帧,跳转会动画开头
     CMP SI,OFFSET SRC_END-OFFSET SRC
     JE GOBACK
-
+    ;一帧绘制完毕 加载下一帧
     CMP DI,4000
     JE NEXTF
-
+    ;重复绘制过程
     JMP WRITE_IMG
 
 NEXTF:
+    ;帧间延时
     SLEEP 1,6000H
-
+    ;回到显存开头
     MOV DI,0
+    ;计算下一帧地址 每帧大小为 50*28=2000 个Byte
     MOV AX,SI
     ADD AX,2000
     MOV SI,AX
+    ;继续绘制
     JMP WRITE_IMG
 
 GOBACK:
+    ;回到第一帧
     MOV SI,OFFSET SRC
+    ;回到显存开头
     MOV DI,0
+    ;继续绘制
     JMP WRITE_IMG
 
 QUIT:
+    ;取出按键 结束
     MOV AH,10H 
     INT 16H
-
+    ;恢复寄存器
     POP DI
     POP SI
     POP ES
