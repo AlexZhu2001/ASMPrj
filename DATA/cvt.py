@@ -44,10 +44,10 @@ def nearest_color(color):
 
 buf = []
 src_dir = r'src/'
-dst_file = r'imageout.txt'
+dst_file = r'imgout.txt'
 
 for imgf in os.listdir(src_dir):
-    img = Image.open(os.path.join(src_dir,imgf)).convert("RGB")
+    img = Image.open(os.path.join(src_dir, imgf)).convert("RGB")
     img = img.resize((80, 50))
     w, h = img.size
 
